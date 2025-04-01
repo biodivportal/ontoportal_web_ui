@@ -98,67 +98,7 @@ $SITE_NOTICE = {}
 # Full string for site, EX: "NCBO BioPortal"
 $ORG_SITE = $ORG.nil? || $ORG.empty? ? $SITE : "#{$ORG} #{$SITE}"
 
-$PORTALS_INSTANCES = [
-  {
-    name: 'AgroPortal',
-    ui: 'https://agroportal.lirmm.fr/',
-    color: '#3CB371',
-    api: 'https://data.agroportal.lirmm.fr/',
-    apikey: '1de0a270-29c5-4dda-b043-7c3580628cd5',
-    'light-color': '#F1F6FA'
-  },
-  {
-    name: 'BioPortal',
-    ui: 'https://bioportal.bioontology.org/',
-    color: '#234979'
-  },
-  {
-    name: 'SIFR BioPortal',
-    apikey: '1de0a270-29c5-4dda-b043-7c3580628cd5',
-    color: '#74a9cb'
-  },
-  {
-    name: 'EcoPortal',
-    ui: 'https://ecoportal.lifewatch.eu/',
-    color: '#0F4E8A',
-    api: 'https://data.ecoportal.lifewatch.eu/',
-    apikey: "43a437ba-a437-4bf0-affd-ab520e584719",
-    'light-color': '#E9F2FA'
-  },
-  {
-    name: 'MedPortal',
-    ui: 'http://medportal.bmicc.cn/',
-    color: '#234979',
-  },
-  {
-    name: 'MatPortal',
-    ui: 'https://matportal.org/',
-    color: '#009574',
-  },
-  {
-    name: 'IndustryPortal',
-    ui: 'http://industryportal.enit.fr',
-    api: 'data.industryportale.test.enit.fr',
-    apikey: '019adb70-1d64-41b7-8f6e-8f7e5eb54942',
-    color: '#1c0f5d'
-  },
-  {
-    name: 'EarthPortal',
-    ui: 'https://earthportal.eu/',
-    color: '#404696',
-    api: 'https://data.earthportal.eu/',
-    apikey: "c9147279-954f-41bd-b068-da9b0c441288",
-    'light-color': '#F0F5F6'
-  },
-  {
-    name: 'BiodivPortal',
-    ui: 'https://biodivportal.gfbio.org/',
-    color: '#349696',
-    api: 'https://data.biodivportal.gfbio.org/',
-    apikey: "47a57aa3-7b54-4f34-b695-dbb5f5b7363e",
-    'light-color': '#EBF5F5',
-
-  }
+$HOME_PAGE_LOGOS = [
 ]
 
 $FOOTER_LINKS = {

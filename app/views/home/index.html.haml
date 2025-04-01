@@ -62,9 +62,10 @@
         = upload_ontology_button
       .discover-ontologies
         = discover_ontologies_button
+
   .home-section
     %h4
-      = t('home.agroportal_figures', site: current_slice_name || portal_name)
+      = t('home.agroportal_figures', site: portal_name)
     %hr.home-section-line/
     .home-statistics-container
       .home-statistics
@@ -165,7 +166,8 @@
             %a{:href => "/landscape#fairness_assessment"}
               %div.home-fair-details
                 %p= t('home.fair_details')
-      - if !$TWITTER_NEWS.blank?
+         
+      - unless $TWITTER_NEWS.blank?
         .home-sub-section-right
           %h4= t('home.twitter_news')
           %hr.home-section-line
