@@ -1,4 +1,4 @@
-set :branch, 'master'
+set :branch, 'development'
 set :server, 'biodivportal.gfbio.dev'
 
 server fetch(:server), user: fetch(:user), roles: %w{web app}
