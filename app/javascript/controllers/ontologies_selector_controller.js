@@ -41,9 +41,9 @@ export default class extends Controller {
             if (selectorVal) {
                 selectorVal.click();
             } else {
-                select.tomselect.addOption({value: value.value, text: value.name});
-                select.tomselect.addItem(value.value)
-                selectorVal = select.parentNode.querySelector(`div[data-value="${value.value}"]`)
+                select.tomselect.addOption({value: value.name, text: value.name});
+                select.tomselect.addItem(value.name)
+                selectorVal = select.parentNode.querySelector(`div[data-value="${value.name}"]`)
                 selectorVal.click();
             }
         }
