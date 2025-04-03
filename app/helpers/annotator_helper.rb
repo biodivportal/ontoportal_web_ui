@@ -22,27 +22,23 @@ module AnnotatorHelper
   end
 
   def find_annotations(uri, api_params, ontologies)
-    if request_portals.size == 1
-      LinkedData::Client::HTTP.get(uri, api_params)
-    else
-      filtered_params = {}
-      request_portals.each do |portal|
-        name = portal.downcase.eql?(portal_name.downcase) ? '' : portal.downcase
-        filtered_params[name] = api_params.dup
-        filtered_params[name][:ontologies] = api_params[:ontologies].split(',').select do |ont|
-          ontology = ontologies.values.find { |o| o.acronym == ont.split('/').last }
-          next false if ontology.nil?
+    filtered_params = {}
+    request_portals.each do |portal|
+      name = portal.downcase.eql?(portal_name.downcase) ? '' : portal.downcase
+      filtered_params[name] = api_params.dup
+      filtered_params[name][:ontologies] = api_params[:ontologies].split(',').select do |ont|
+        ontology = ontologies.values.find { |o| o.acronym == ont.split('/').last }
+        next false if ontology.nil?
 
-          config = ontology_portal_config(ontology.id)&.last || internal_portal_config(ontology.id) || {}
-          next false if config.blank?
+        config = ontology_portal_config(ontology.id)&.last || internal_portal_config(ontology.id) || {}
+        next false if config.blank?
 
-          portal.downcase.eql?(config[:name].downcase)
-        end.map{|x| x.split('/').last }.uniq.join(',')
-      end
+        portal.downcase.eql?(config[:name].downcase)
+      end.map { |x| x.split('/').last }.uniq.join(',')
+    end
 
-      LinkedData::Client::Models::Class.federated_get(filtered_params) do |url|
-        "#{url}/annotator"
-      end
+    LinkedData::Client::Models::Class.federated_get(filtered_params) do |url|
+      "#{url}/annotator"
     end
   end
 
