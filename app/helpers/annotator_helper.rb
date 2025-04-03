@@ -26,6 +26,7 @@ module AnnotatorHelper
     request_portals.each do |portal|
       name = portal.downcase.eql?(portal_name.downcase) ? '' : portal.downcase
       filtered_params[name] = api_params.dup
+      api_params[:ontologies] ||= ''
       filtered_params[name][:ontologies] = api_params[:ontologies].split(',').select do |ont|
         ontology = ontologies.values.find { |o| o.acronym == ont.split('/').last }
         next false if ontology.nil?
