@@ -221,22 +221,24 @@ module ApplicationHelper
     bootstrap_alert_class[flash_key]
   end
 
-  def label_ajax_link(id, ont_acronym, ajax_uri, target)
+  def label_ajax_link(id, ont_acronym, ajax_uri, target, link: nil, color: nil, chip: true)
     ajax_uri = if ajax_uri.include?('?')
-                 "#{ajax_uri}&ontology=#{ont_acronym}&id=#{escape(id)}"
+                 "#{ajax_uri}&ontology=#{ont_acronym}&id=#{escape(id)}&color=#{encode_param(color)}&chip=#{chip}"
                else
-                 "#{ajax_uri}?ontology=#{ont_acronym}&id=#{escape(id)}"
+                 "#{ajax_uri}?ontology=#{ont_acronym}&id=#{escape(id)}&color=#{encode_param(color)}&chip=#{chip}"
                end
 
     content_tag(:span, class: 'concepts-mapping-count') do
-      ajax_link_chip(id, ajax_src: ajax_uri, target: target)
+      ajax_link_chip(id, id.split('/').last,
+                     link || id,
+                     ajax_src: ajax_uri, target: target, chip: chip, color: color)
     end
   end
 
-  def get_link_for_cls_ajax(cls_id, ont_acronym, target = nil)
+  def get_link_for_cls_ajax(cls_id, ont_acronym, target = nil, link: nil,  chip: true, color: nil)
     if cls_id.start_with?('http://') || cls_id.start_with?('https://')
       ajax_url = '/ajax/classes/label'
-      label_ajax_link(cls_id, ont_acronym, ajax_url, target)
+      label_ajax_link(cls_id, ont_acronym, ajax_url, target, link: link, chip: chip, color: color)
     else
       content_tag(:div, cls_id)
     end
@@ -404,7 +406,7 @@ module ApplicationHelper
     content_tag(:div, class:'insert-sample-text-button') do
       content_tag(:div, class: 'button', 'data-action': 'click->sample-text#annotator_recommender', 'data-sample-text': t("annotator.sample_text")) do
         content_tag(:div, text, class: 'text') +
-        inline_svg_tag('icons/arrow-curved-up.svg')
+          inline_svg_tag('icons/arrow-curved-up.svg')
       end
     end
   end
@@ -413,13 +415,17 @@ module ApplicationHelper
     render Display::EmptyStateComponent.new(text: text)
   end
 
-  def ontologies_selector(id:, label: nil, name: nil, selected: nil, placeholder: nil, multiple: true, ontologies: onts_for_select)
+  def ontologies_selector(id:, label: nil, name: nil, selected: nil, placeholder: nil, multiple: true, ontologies: nil, portals: request_portals)
+    ontologies ||= onts_for_select
+    selected = Array(selected).map { |x| x.split('/').last }
     content_tag(:div) do
       render(Input::SelectComponent.new(id: id, label: label, name: name, value: ontologies, multiple: multiple, selected: selected, placeholder: placeholder)) +
-      content_tag(:div, class: 'ontologies-selector-button', 'data-controller': 'ontologies-selector', 'data-ontologies-selector-id-value': id) do
-        content_tag(:div, t('ontologies_selector.clear_selection'), class: 'clear-selection', 'data-action': 'click->ontologies-selector#clear') +
-        link_to_modal(t('ontologies_selector.ontologies_advanced_selection'), "/ontologies_selector?id=#{id}", data: { show_modal_title_value: t('ontologies_selector.ontologies_advanced_selection')})
-      end
+        content_tag(:div, class: 'ontologies-selector-button',
+                          'data-controller': 'ontologies-selector', 'data-ontologies-selector-id-value': id) do
+          content_tag(:div, t('ontologies_selector.clear_selection'), class: 'clear-selection', 'data-action': 'click->ontologies-selector#clear') +
+            link_to_modal(t('ontologies_selector.ontologies_advanced_selection'), "/ontologies_selector?id=#{id}&portals=#{portals.join(',')}",
+                          data: { show_modal_title_value: t('ontologies_selector.ontologies_advanced_selection'), show_modal_size_value: 'modal-xl'})
+        end
     end
   end
 
