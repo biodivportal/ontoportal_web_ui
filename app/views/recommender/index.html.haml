@@ -43,9 +43,19 @@
                 .ontology-sets-choice
                   = render Input::RadioChipComponent.new(label: t('recommender.ontology_sets'), name: 'output_type', value: '2', checked: !check_output)
 
+            - if federation_enabled?
+              %div
+                .filter-container
+                  .title
+                    = t('federation.results_from_external_portals')
+                  .field.d-flex
+                    = federation_input_chips(name: "portals[]")
+                .select-ontologies
+                  = ontologies_selector(id:'annotator_page_ontologies', label: t('annotator.select_ontologies') ,name: 'ontologies[]', selected: params[:ontologies]&.split(','))
+
             = show_advanced_options_button(text: t('show_advanced_options'), init: @advanced_options_open || @not_valid_max_num_set)
             = hide_advanced_options_button(text: t('hide_advanced_options'), init: @advanced_options_open || @not_valid_max_num_set)
-              
+
         .recommender-advanced-options{'data-reveal-component-target': 'item', class: "#{@advanced_options_open || @not_valid_max_num_set ? '' : 'd-none'}"}
           .weights-configuration
             .title 
@@ -60,23 +70,12 @@
                 = render Input::RangeSliderComponent.new(label: t('recommender.knowledge_detail'), name: "wd", value: params[:wd] || 0.15, min: '0', max: '1', step: '0.01')
               .ninput
                 = render Input::RangeSliderComponent.new(label: t('recommender.specialization'), name: "ws", value: params[:ws] || 0.15, min: '0', max: '1', step: '0.01')
-          .ontologies-configuration
-            .title 
-              = t('recommender.ontologies_configuration')
-            .inputs-container
-              .ontologies.input
-                = ontologies_selector(id:'recommender_page_ontologies', label: t('recommender.select_ontologies') ,name: 'ontologies[]', selected:  params[:ontologies]&.split(','))
-              .maxsets.input.d-none{'data-recommender-target': 'maxset'}
-                = render Input::NumberComponent.new(label: t('recommender.max_ont_set'), name: "max_elements_set", value: params[:max_elements_set] || 3, min: '2', max: '4', step: '1', error_message: "#{@not_valid_max_num_set ? 'Valid values are: 2, 3, 4' : ''}")
-              .input{'data-recommender-target': 'empty'}
 
-        .recommender-page-button#get_recommendations_button{class: is_input ?  "" : "d-none", 'data-recommender-target': 'button'}
-          = render Buttons::RegularButtonComponent.new(id:'recommender', value: t('recommender.get_recommendations'), variant: "primary", type: 'submit')
+        .recommender-page-button{class: is_input ?  "" : "d-none", 'data-recommender-target': 'button'}
+          = form_save_button(id: "recommender", value: t('recommender.get_recommendations'))
 
         .recommender-page-button{class: is_input ? "d-none" : "", 'data-action': 'click->recommender#edit', id: 'recommender-edit-button'}
-          = render Buttons::RegularButtonComponent.new(id:'edit-recommender', value: t('recommender.edit'), variant: "primary") do |btn|
-            - btn.icon_left do
-              = inline_svg_tag "edit.svg"
+          = edit_recommender_button
     - if @results && @results.empty?
       = empty_state
     - unless @results.nil? || @results.empty?
@@ -84,7 +83,7 @@
         .title
           = t('recommender.results_title')
         .recommender-table-container
-          = render TableComponent.new(id: 'recommender-table', borderless: true, layout_fixed: true, small_text: true, outline: true, sort_column: '1') do |t|
+          = render TableComponent.new(id: 'recommender-table',  borderless: true, outline: true, sort_column: '0', paging: true, searching: true) do |t|
             - t.header do |h|
               - @results_table_header.each do |header|
                 - h.th do
@@ -92,10 +91,7 @@
             - @results.each do |result|
               - t.row do |r|
                 - r.td do
-                  - ontologies = ""
-                  - result[:ontologies].each do |ontology|
-                    %a.recommender-result-ontology{href: ontology_path(id: ontology[:acronym], p: 'summary')}
-                      = ontology[:acronym]
+                  = recommendation_ontology_link(result)
                 - r.td do
                   = render Display::ProgressBarComponent.new(progress: result[:final_score])
                 - r.td do

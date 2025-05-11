@@ -4,8 +4,8 @@ module FederationHelper
   def federated_portals
     $FEDERATED_PORTALS ||= LinkedData::Client.settings.federated_portals
     $FEDERATED_PORTALS.each do |key, portal|
-      portal[:ui] += "/" unless portal[:ui].end_with?("/")
-      portal[:api] += "/" unless portal[:api].end_with?("/")
+      portal[:ui] += '/' unless portal[:ui].end_with?('/')
+      portal[:api] += '/' unless portal[:api].end_with?('/')
     end
     $FEDERATED_PORTALS
   end
@@ -18,7 +18,7 @@ module FederationHelper
       api: rest_url,
       apikey: $API_KEY,
       ui: $UI_URL,
-      color: "var(--primary-color)",
+      color: 'var(--primary-color)',
       'light-color': 'var(--light-color)',
     }
   end
@@ -47,19 +47,9 @@ module FederationHelper
     federated_portals.select { |_, config| config[:api].start_with?(rest_url) }.first
   end
 
-  def ontology_portal_name(id)
-    portal_key, _ = ontology_portal_config(id)
-    portal_key ? federated_portal_name(portal_key) : nil
-  end
-
-  def ontology_portal_color(id)
-    portal_key, _ = ontology_portal_config(id)
-    federated_portal_color(portal_key) if portal_key
-  end
-
   def ontoportal_ui_link(id)
     if id.include?($REST_URL)
-      return id.gsub($REST_URL,'')
+      return id.gsub($REST_URL, '')
     end
 
     portal_key, config = ontology_portal_config(id)
@@ -98,8 +88,8 @@ module FederationHelper
         next nil
       end
 
-      content_tag(:span, "#{federated_portal_name(name)} (#{counts[federated_portal_name(name).downcase]})", style: color ? "color: #{color}" : "", class: color ? "" : "text-primary")
-    end.compact.join(", ")
+      content_tag(:span, "#{federated_portal_name(name)} (#{counts[federated_portal_name(name).downcase]})", style: color ? "color: #{color}" : '', class: color ? '' : 'text-primary')
+    end.compact.join(', ')
 
     "#{output} in #{sprintf("%.2f", time)}s"
   end
@@ -112,9 +102,8 @@ module FederationHelper
     !federated_portals.blank?
   end
 
-
   def federation_error?(response)
-    !response[:errors].blank?
+    !response[:errors].blank? || !response[:error].blank?
   end
 
   def federation_error(response)
@@ -164,7 +153,7 @@ module FederationHelper
 
   def federation_portal_status(portal_name: nil)
     Rails.cache.fetch("federation_portal_up_#{portal_name}", expires_in: 10.minutes) do
-      portal_api = federated_portals&.dig(portal_name,:api)
+      portal_api = federated_portals&.dig(portal_name, :api)
       return false unless portal_api
       portal_up = false
       begin
@@ -183,13 +172,13 @@ module FederationHelper
   end
 
   def federation_chip_component(key, name, acronym, checked, portal_up)
-    render TurboFrameComponent.new(id:"federation_portals_status_#{key}") do
-      content_tag(:div, style: "cursor: default;") do
+    render TurboFrameComponent.new(id: "federation_portals_status_#{key}") do
+      content_tag(:div, style: 'cursor: default;') do
         title = "#{!portal_up ? "#{key.humanize.gsub('portal', 'Portal')} #{t('federation.not_responding')}" : ''}"
         group_chip_component(name: name,
-                             object: { "acronym" => acronym, "value" => key },
+                             object: { 'acronym' => acronym, 'value' => key },
                              checked: checked,
-                             title: title ,
+                             title: title,
                              disabled: !portal_up)
       end
     end
@@ -234,6 +223,32 @@ module FederationHelper
     counts_ontology_ids_by_portal_name(ids)
   end
 
+  def federation_link(id:, title:, name: nil, color: nil)
+    content_tag(:span, class: '', style: color ? "color: #{color} !important" : '',
+                'data-controller': 'federation-portals-colors',
+                'data-federation-portals-colors-color-value': color,
+                'data-federation-portals-colors-portal-name-value': name.downcase) do
+      content_tag(:div, class: '') do
+        out = title
+        unless internal_ontology?(id)
+          out += inline_svg_tag 'icons/external-link.svg', class: "ml-1 federated-icon-#{name.downcase} #{color ? '' : 'd-none'}"
+        end
+        out.html_safe
+      end
+    end
+  end
+
+  def federation_buttons(ontology_sources)
+    out = Array(ontology_sources).map do |id|
+      config = ontology_portal_config(id)&.last || internal_portal_config(id) || {}
+      next if config.blank?
+      content_tag(:span, style: 'padding: 3px 0; margin-right: 0.25rem;') do
+        portal_button(name: config[:name], color: config[:color], light_color: config[:"light-color"], link: ontoportal_ui_link(id), tooltip: "Source #{config[:name]}")
+      end
+    end.join.html_safe
+    content_tag(:div, out, class: 'd-flex align-items-center')
+  end
+
   private
 
   def counts_ontology_ids_by_portal_name(portals_ids)
@@ -254,7 +269,7 @@ module FederationHelper
 
   def external_canonical_ontology_portal(ontologies)
     canonical_portal = most_referred_portal(ontologies)
-    ontologies.select{|o| o[:id].include?(canonical_portal.to_s)}.first
+    ontologies.select { |o| o[:id].include?(canonical_portal.to_s) }.first
   end
 
   def most_referred_portal(ontology_submissions)
