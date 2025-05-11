@@ -84,10 +84,9 @@ class AnnotatorController < ApplicationController
     set_federated_portals
     @ontologies = LinkedData::Client::Models::Ontology.all({ include_views: true }).map { |o| [o.id.to_s, o] }.to_h
     annotations = find_annotations(api_params, @ontologies)
-    @federation_errors = []
-    Array(annotations).each do |annotation|
-      @federation_errors << annotation.errors if federation_error?(annotation)
-    end
+
+    annotations, @federation_errors = annotations.partition { |x| !federation_error?(x) }
+
     # @semantic_types = get_semantic_types
     @results = []
     annotations.each do |annotation|
@@ -159,7 +158,7 @@ class AnnotatorController < ApplicationController
     ontology = @ontologies[ontology_url]
     {
       id: ontology_url,
-      text: ontology.name,
+      name: ontology.name,
       link: ontology_url
     }
   end
