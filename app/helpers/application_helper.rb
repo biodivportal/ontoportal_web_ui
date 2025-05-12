@@ -415,7 +415,7 @@ module ApplicationHelper
     render Display::EmptyStateComponent.new(text: text)
   end
 
-  def ontologies_selector(id:, label: nil, name: nil, selected: nil, placeholder: nil, multiple: true, ontologies: nil)
+  def ontologies_selector(id:, label: nil, name: nil, selected: nil, placeholder: nil, multiple: true, ontologies: nil, portals: request_portals)
     ontologies ||= onts_for_select
     selected = Array(selected).map { |x| x.split('/').last }
     content_tag(:div) do
@@ -423,7 +423,7 @@ module ApplicationHelper
         content_tag(:div, class: 'ontologies-selector-button',
                           'data-controller': 'ontologies-selector', 'data-ontologies-selector-id-value': id) do
           content_tag(:div, t('ontologies_selector.clear_selection'), class: 'clear-selection', 'data-action': 'click->ontologies-selector#clear') +
-            link_to_modal(t('ontologies_selector.ontologies_advanced_selection'), "/ontologies_selector?id=#{id}",
+            link_to_modal(t('ontologies_selector.ontologies_advanced_selection'), "/ontologies_selector?id=#{id}&portals=#{portals.join(',')}",
                           data: { show_modal_title_value: t('ontologies_selector.ontologies_advanced_selection'), show_modal_size_value: 'modal-xl'})
         end
     end

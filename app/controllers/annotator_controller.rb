@@ -12,6 +12,7 @@ class AnnotatorController < ApplicationController
   before_action :initialize_options, only: [:index]
 
   def index
+    @results = nil
     @results_table_header = annotator_results_table_header
     @advanced_options_open = !empty_advanced_options
     @time = Benchmark.realtime do
@@ -25,7 +26,6 @@ class AnnotatorController < ApplicationController
     @form_url = url
     @page_name = page_name
     annotator_results(uri)
-    @results ||= []
     add_pull_locations(@results)
     @results = merge_annotator_results(@results)
     @federation_counts = counts_ontology_ids_by_portal_name(
@@ -34,6 +34,8 @@ class AnnotatorController < ApplicationController
   end
 
   def merge_annotator_results(results)
+    return unless results
+
     results.group_by { |x| [x[:class][:id], x[:ontology][:id].split('/').last] }.map do |_, x|
       ontologies = x.map { |y| y[:ontology] }
       canonical_ontology = canonical_ontology(ontologies)
@@ -45,10 +47,12 @@ class AnnotatorController < ApplicationController
   end
 
   def add_pull_locations(results)
+    return unless results
+
     all_submissions = LinkedData::Client::Models::OntologySubmission.all(include: 'pullLocation', include_views: true, display_links: false, display_context: false)
     results.each do |x|
       o = x[:ontology]
-      o[:pullLocation] = all_submissions.select { |s| s.id.split('/')[-3].eql?(o[:id].split('/').last) }.first&.pullLocation
+      o[:pullLocation] = all_submissions.select { |s| s.id && s.id.split('/')[-3].eql?(o[:id].split('/').last) }.first&.pullLocation
     end
   end
 
@@ -79,12 +83,11 @@ class AnnotatorController < ApplicationController
     params[:score] = nil if params[:score].nil? || params[:score].eql?('none')
     set_federated_portals
     @ontologies = LinkedData::Client::Models::Ontology.all({ include_views: true }).map { |o| [o.id.to_s, o] }.to_h
-    annotations = find_annotations(uri, api_params, @ontologies)
-    @federation_errors = []
-    Array(annotations).each do |annotation|
-      @federation_errors << annotation.errors if federation_error?(annotation)
-    end
-    @semantic_types = get_semantic_types
+    annotations = find_annotations(api_params, @ontologies)
+
+    annotations, @federation_errors = annotations.partition { |x| !federation_error?(x) }
+
+    # @semantic_types = get_semantic_types
     @results = []
     annotations.each do |annotation|
       next if annotation.nil? || annotation.errors
@@ -155,7 +158,7 @@ class AnnotatorController < ApplicationController
     ontology = @ontologies[ontology_url]
     {
       id: ontology_url,
-      text: ontology.name,
+      name: ontology.name,
       link: ontology_url
     }
   end

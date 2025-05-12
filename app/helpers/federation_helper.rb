@@ -103,7 +103,7 @@ module FederationHelper
   end
 
   def federation_error?(response)
-    !response[:errors].blank?
+    !response[:errors].blank? || !response[:error].blank?
   end
 
   def federation_error(response)
@@ -228,7 +228,7 @@ module FederationHelper
                 'data-controller': 'federation-portals-colors',
                 'data-federation-portals-colors-color-value': color,
                 'data-federation-portals-colors-portal-name-value': name.downcase) do
-      content_tag(:div, class: 'd-flex align-items-center') do
+      content_tag(:div, class: '') do
         out = title
         unless internal_ontology?(id)
           out += inline_svg_tag 'icons/external-link.svg', class: "ml-1 federated-icon-#{name.downcase} #{color ? '' : 'd-none'}"
@@ -236,6 +236,17 @@ module FederationHelper
         out.html_safe
       end
     end
+  end
+
+  def federation_buttons(ontology_sources)
+    out = Array(ontology_sources).map do |id|
+      config = ontology_portal_config(id)&.last || internal_portal_config(id) || {}
+      next if config.blank?
+      content_tag(:span, style: 'padding: 3px 0; margin-right: 0.25rem;') do
+        portal_button(name: config[:name], color: config[:color], light_color: config[:"light-color"], link: ontoportal_ui_link(id), tooltip: "Source #{config[:name]}")
+      end
+    end.join.html_safe
+    content_tag(:div, out, class: 'd-flex align-items-center')
   end
 
   private
