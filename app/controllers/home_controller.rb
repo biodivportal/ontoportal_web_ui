@@ -8,6 +8,16 @@ class HomeController < ApplicationController
   def index
     @analytics = helpers.ontologies_analytics
 
+    @ont_count = if @analytics.empty?
+                   LinkedData::Client::Models::Ontology.all.size
+                 else
+                   @analytics.keys.size
+                 end
+
+    all_metrics = LinkedData::Client::Models::Metrics.all
+    metrics = all_metrics.each_with_object(Hash.new(0)) do |h, sum|
+      h.to_hash.slice(:classes, :properties, :individuals).each { |k, v| sum[k] += v }
+    end
     @slices = LinkedData::Client::Models::Slice.all
 
     @metrics = portal_metrics(@analytics)
@@ -24,10 +34,9 @@ class HomeController < ApplicationController
     @anal_ont_names = []
     @anal_ont_numbers = []
     if @analytics.empty?
-      all_metrics = LinkedData::Client::Models::Metrics.all
       all_metrics.sort_by{|x| -(x.classes + x.individuals)}[0..4].each do |x|
         @anal_ont_names << x.id.split('/')[-4]
-        @anal_ont_numbers << (x.classes + x.individuals) || 0
+        @anal_ont_numbers << x.classes + x.individuals
       end
     else
       @analytics.sort_by{|ont, count| -count}[0..4].each do |ont, count|

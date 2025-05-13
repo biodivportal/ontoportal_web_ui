@@ -124,6 +124,7 @@ class AnnotatorController < ApplicationController
     semantic_types = {}
     sty_ont = LinkedData::Client::Models::Ontology.find_by_acronym('STY').first
 
+
     return semantic_types if sty_ont.nil? || sty_ont.errors
 
     # The first 500 items should be more than sufficient to get all semantic types.

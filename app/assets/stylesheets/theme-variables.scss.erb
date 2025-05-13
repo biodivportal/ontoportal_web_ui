@@ -22,7 +22,13 @@
             --secondary-color: #ffc107;
             --light-color: #F0F5F6;
         }
-    
+    <% when "biodivportal" %>
+        :root{
+          --primary-color: #33691b;
+          --hover-color: #4CAF50;
+          --secondary-color: #ffc107;
+          --light-color: #F1F6FA;
+      }
     <% when "ontoportal" , "testportal" %>
         :root{
             --primary-color: #5499a4;
@@ -49,8 +55,3 @@
     --bg-warning-light-color: rgba(234, 179, 8, 0.1);
     --bg-success-light-color: rgba(34, 197, 94, 0.1);
 }
-
-
-
-
-
